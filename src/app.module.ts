@@ -1,9 +1,25 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'path';
+import { UserModule } from './user/user.module';
+import { TutorialModule } from './tutorial/tutorial.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'sqlite',
+      database: 'database.sqlite',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true, // Only enale for the test/dev environment in a production enviroment this NEEDS to be false
+    }),
+    GraphQLModule.forRoot({
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+    }),
+    UserModule,
+    TutorialModule,
+    AuthModule,
+  ],
 })
 export class AppModule {}
