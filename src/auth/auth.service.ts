@@ -31,7 +31,7 @@ export class AuthService {
       const decoded = this.jwtService.verify<JwtPayload>(token);
       return await this.userService.findOne(decoded.sub);
     } catch (error) {
-      return null;
+      return error;
     }
   }
 }
