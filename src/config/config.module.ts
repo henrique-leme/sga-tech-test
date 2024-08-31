@@ -5,6 +5,7 @@ import { validatedEnv } from './env.validation';
 @Module({
   imports: [
     NestConfigModule.forRoot({
+      envFilePath: ['.env'],
       isGlobal: true,
       load: [() => validatedEnv],
     }),
