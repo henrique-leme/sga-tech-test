@@ -1,18 +1,15 @@
+import { InputType, Field } from '@nestjs/graphql';
 import { IsString, IsNotEmpty, MinLength, IsEmail } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 
+@InputType({
+  description: 'Dados necessários para realizar o login de um usuário',
+})
 export class LoginUserDto {
-  @ApiProperty({
-    description: 'Endereço de e-mail do usuário',
-    example: 'henriqueleme@example.com',
-  })
+  @Field({ description: 'Endereço de e-mail registrado do usuário' })
   @IsEmail()
   email: string;
 
-  @ApiProperty({
-    description: 'Senha do usuário',
-    example: 'veryStrongPassword123@',
-  })
+  @Field({ description: 'Senha do usuário, deve ter pelo menos 6 caracteres' })
   @IsString()
   @IsNotEmpty()
   @MinLength(6)
