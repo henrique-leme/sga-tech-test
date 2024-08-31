@@ -1,72 +1,82 @@
 import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
-import { TutorialService } from './tutorial.service';
 import { Tutorial } from './tutorial.entity';
+import { TutorialService } from './tutorial.service';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
 
-@ApiTags('Tutorials')
 @Resolver(() => Tutorial)
 export class TutorialResolver {
   constructor(private readonly tutorialService: TutorialService) {}
 
-  @ApiOperation({ summary: 'Listar todos os tutoriais' })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de tutoriais.',
-    type: [Tutorial],
+  @Query(() => [Tutorial], {
+    description:
+      'Retorna uma lista de todos os tutoriais disponíveis. Você pode usar filtros opcionais como título ou data.',
   })
-  @Query(() => [Tutorial])
-  async tutorials(): Promise<Tutorial[]> {
-    return this.tutorialService.findAll();
+  async tutorials(
+    @Args('title', {
+      type: () => String,
+      nullable: true,
+      description: 'Filtro opcional pelo título do tutorial',
+    })
+    title?: string,
+    @Args('date', {
+      type: () => String,
+      nullable: true,
+      description:
+        'Filtro opcional pela data de criação ou atualização. Formato: "YYYY-MM-DD,YYYY-MM-DD"',
+    })
+    date?: string,
+  ): Promise<Tutorial[]> {
+    return this.tutorialService.findAll({ title, date });
   }
 
-  @ApiOperation({ summary: 'Obter um tutorial pelo ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'O tutorial foi encontrado.',
-    type: Tutorial,
+  @Query(() => Tutorial, {
+    description: 'Retorna um tutorial específico pelo seu ID.',
   })
-  @ApiResponse({ status: 404, description: 'Tutorial não encontrado.' })
-  @Query(() => Tutorial)
   async tutorial(
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int, description: 'ID único do tutorial' })
+    id: number,
   ): Promise<Tutorial> {
     return this.tutorialService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Criar um novo tutorial' })
-  @ApiResponse({
-    status: 201,
-    description: 'O tutorial foi criado.',
-    type: Tutorial,
+  @Mutation(() => Tutorial, {
+    description: 'Cria um novo tutorial com título e conteúdo especificados.',
   })
-  @Mutation(() => Tutorial)
+  @UseGuards(AuthGuard)
   async createTutorial(
-    @Args('createTutorialDto') createTutorialDto: CreateTutorialDto,
+    @Args('createTutorialDto', {
+      description: 'Dados para criação do tutorial',
+    })
+    createTutorialDto: CreateTutorialDto,
   ): Promise<Tutorial> {
     return this.tutorialService.create(createTutorialDto);
   }
 
-  @ApiOperation({ summary: 'Atualizar um tutorial existente' })
-  @ApiResponse({
-    status: 200,
-    description: 'O tutorial foi atualizado.',
-    type: Tutorial,
+  @Mutation(() => Tutorial, {
+    description: 'Atualiza um tutorial existente pelo seu ID.',
   })
-  @Mutation(() => Tutorial)
+  @UseGuards(AuthGuard)
   async updateTutorial(
-    @Args('id', { type: () => Int }) id: number,
-    @Args('updateTutorialDto') updateTutorialDto: UpdateTutorialDto,
+    @Args('id', { type: () => Int, description: 'ID único do tutorial' })
+    id: number,
+    @Args('updateTutorialDto', {
+      description: 'Dados para atualização do tutorial',
+    })
+    updateTutorialDto: UpdateTutorialDto,
   ): Promise<Tutorial> {
     return this.tutorialService.update(id, updateTutorialDto);
   }
 
-  @ApiOperation({ summary: 'Deletar um tutorial pelo ID' })
-  @ApiResponse({ status: 200, description: 'O tutorial foi deletado.' })
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, {
+    description: 'Remove um tutorial existente pelo seu ID.',
+  })
+  @UseGuards(AuthGuard)
   async deleteTutorial(
-    @Args('id', { type: () => Int }) id: number,
+    @Args('id', { type: () => Int, description: 'ID único do tutorial' })
+    id: number,
   ): Promise<boolean> {
     await this.tutorialService.remove(id);
     return true;
