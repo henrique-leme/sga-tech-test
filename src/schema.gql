@@ -1,0 +1,121 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input CreateTutorialDto {
+  content: String!
+  title: String!
+}
+
+"""Dados necessários para criar um novo usuário"""
+input CreateUserDto {
+  """Endereço de e-mail do usuário"""
+  email: String!
+
+  """Nome completo do usuário"""
+  name: String!
+
+  """Senha do usuário"""
+  password: String!
+}
+
+"""Dados necessários para realizar o login de um usuário"""
+input LoginUserDto {
+  """Endereço de e-mail registrado do usuário"""
+  email: String!
+
+  """Senha do usuário, deve ter pelo menos 6 caracteres"""
+  password: String!
+}
+
+type Mutation {
+  """Cria um novo tutorial com título e conteúdo especificados."""
+  createTutorial(
+    """Dados para criação do tutorial"""
+    createTutorialDto: CreateTutorialDto!
+  ): Tutorial!
+  createUser(createUserData: CreateUserDto!): User!
+
+  """Remove um tutorial existente pelo seu ID."""
+  deleteTutorial(
+    """ID único do tutorial"""
+    id: Int!
+  ): Boolean!
+  login(loginUserData: LoginUserDto!): String!
+  removeUser(id: Int!): Boolean!
+
+  """Atualiza um tutorial existente pelo seu ID."""
+  updateTutorial(
+    """ID único do tutorial"""
+    id: Int!
+
+    """Dados para atualização do tutorial"""
+    updateTutorialDto: UpdateTutorialDto!
+  ): Tutorial!
+  updateUser(id: Int!, updateUserData: UpdateUserDto!): User!
+}
+
+type Query {
+  """Retorna um tutorial específico pelo seu ID."""
+  tutorial(
+    """ID único do tutorial"""
+    id: Int!
+  ): Tutorial!
+
+  """
+  Retorna uma lista de todos os tutoriais disponíveis. Você pode usar filtros opcionais como título ou data.
+  """
+  tutorials(
+    """
+    Filtro opcional pela data de criação ou atualização. Formato: "YYYY-MM-DD,YYYY-MM-DD"
+    """
+    date: String
+
+    """Filtro opcional pelo título do tutorial"""
+    title: String
+  ): [Tutorial!]!
+  user(id: Int!): User!
+  users: [User!]!
+}
+
+type Tutorial {
+  content: String!
+  id: Int!
+  title: String!
+}
+
+input UpdateTutorialDto {
+  content: String
+  id: Int
+  title: String
+}
+
+"""Dados necessários para atualizar as informações de um usuário"""
+input UpdateUserDto {
+  """Novo endereço de e-mail do usuário (opcional)"""
+  email: String
+
+  """ID único do usuário a ser atualizado"""
+  id: Int!
+
+  """Novo nome completo do usuário (opcional)"""
+  name: String
+
+  """Nova senha do usuário (opcional)"""
+  password: String
+}
+
+"""Entidade que representa um usuário no sistema"""
+type User {
+  """Endereço de e-mail do usuário. Deve ser único no sistema"""
+  email: String!
+
+  """ID único do usuário"""
+  id: Int!
+
+  """Nome completo do usuário"""
+  name: String!
+
+  """Senha do usuário armazenada de forma segura"""
+  password: String!
+}
