@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=spa_technical_test
+      - DATABASE_URL=/app/database.sqlite
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - /app/node_modules
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=test
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: ['pnpm', 'run', 'test']
