@@ -1,22 +1,19 @@
+import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsString, IsOptional, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
 
+@InputType()
 export class UpdateTutorialDto {
-  @ApiProperty({
-    description: 'Título do tutorial (opcional)',
-    example: 'Como usar o novo Tutoriall',
-    required: false,
-  })
+  @Field(() => Int, { nullable: true })
+  @IsOptional()
+  id?: number;
+
+  @Field({ nullable: true })
   @IsString()
   @IsOptional()
   @MinLength(3)
   title?: string;
 
-  @ApiProperty({
-    description: 'Conteúdo do tutorial (opcional)',
-    example: 'Este tutorial explica como o novo tutorial.',
-    required: false,
-  })
+  @Field({ nullable: true })
   @IsString()
   @IsOptional()
   content?: string;

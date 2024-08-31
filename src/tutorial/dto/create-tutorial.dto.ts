@@ -1,20 +1,14 @@
-import { IsString, IsNotEmpty, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { InputType, Field } from '@nestjs/graphql';
+import { IsString, IsNotEmpty } from 'class-validator';
 
+@InputType()
 export class CreateTutorialDto {
-  @ApiProperty({
-    description: 'Título do tutorial',
-    example: 'Exemplo de tutorial',
-  })
+  @Field()
   @IsString()
   @IsNotEmpty()
-  @MinLength(3)
   title: string;
 
-  @ApiProperty({
-    description: 'Conteúdo do tutorial',
-    example: 'Este tutorial explica como usar o tutorial.',
-  })
+  @Field()
   @IsString()
   @IsNotEmpty()
   content: string;
