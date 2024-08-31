@@ -2,11 +2,12 @@ import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AuthService } from '../auth/auth.service';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { NotFoundException, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../auth/auth.guard';
 
-@ApiTags('Users')
 @Resolver(() => User)
 export class UserResolver {
   constructor(
@@ -14,49 +15,63 @@ export class UserResolver {
     private readonly authService: AuthService,
   ) {}
 
-  @ApiOperation({ summary: 'Obter um usuário pelo ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'O usuário foi encontrado.',
-    type: User,
-  })
-  @ApiResponse({ status: 404, description: 'Usuário não encontrado.' })
+  @Query(() => [User])
+  @UseGuards(AuthGuard)
+  async users(): Promise<User[]> {
+    return this.userService.findAll();
+  }
+
   @Query(() => User)
-  async user(@Args('id', { type: () => Int }) id: number): Promise<User> {
+  @UseGuards(AuthGuard)
+  async user(
+    @Args('id', { type: () => Int })
+    id: number,
+  ): Promise<User> {
     return this.userService.findOne(id);
   }
 
-  @ApiOperation({ summary: 'Registrar um novo usuário' })
-  @ApiResponse({
-    status: 201,
-    description: 'O usuário foi criado.',
-    type: User,
-  })
   @Mutation(() => User)
-  async signup(
-    @Args('createUserDto') createUserDto: CreateUserDto,
+  async createUser(
+    @Args('createUserData', { type: () => CreateUserDto })
+    createUserData: CreateUserDto,
   ): Promise<User> {
-    return this.userService.create(createUserDto);
+    return this.userService.create(createUserData);
   }
 
-  @ApiOperation({ summary: 'Login de um usuário' })
-  @ApiResponse({
-    status: 200,
-    description: 'Login bem-sucedido, retorna um token JWT.',
-  })
+  @Mutation(() => User)
+  @UseGuards(AuthGuard)
+  async updateUser(
+    @Args('id', { type: () => Int })
+    id: number,
+    @Args('updateUserData', { type: () => UpdateUserDto })
+    updateUserData: UpdateUserDto,
+  ): Promise<User> {
+    return this.userService.update(id, updateUserData);
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(AuthGuard)
+  async removeUser(
+    @Args('id', { type: () => Int })
+    id: number,
+  ): Promise<boolean> {
+    await this.userService.remove(id);
+    return true;
+  }
+
   @Mutation(() => String)
   async login(
-    @Args('loginUserDto') loginUserDto: LoginUserDto,
+    @Args('loginUserData', { type: () => LoginUserDto })
+    loginUserData: LoginUserDto,
   ): Promise<string> {
     const user = await this.userService.validateUser(
-      loginUserDto.email,
-      loginUserDto.password,
+      loginUserData.email,
+      loginUserData.password,
     );
     if (!user) {
-      throw new Error('Invalid credentials');
+      throw new NotFoundException('Invalid credentials');
     }
-    return this.authService
-      .login(user)
-      .then((response) => response.access_token);
+    const { access_token } = await this.authService.login(user);
+    return access_token;
   }
 }
