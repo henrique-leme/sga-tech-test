@@ -17,8 +17,35 @@ export class TutorialService {
     return this.tutorialRepository.save(tutorial);
   }
 
-  async findAll(): Promise<Tutorial[]> {
-    return this.tutorialRepository.find();
+  async findAll({
+    title,
+    date,
+  }: {
+    title?: string;
+    date?: string;
+  }): Promise<Tutorial[]> {
+    const queryBuilder = this.tutorialRepository.createQueryBuilder('tutorial');
+
+    if (title) {
+      queryBuilder.andWhere('tutorial.title LIKE :title', {
+        title: `%${title}%`,
+      });
+    }
+
+    if (date) {
+      const [startDate, endDate] = date.split(',');
+      if (startDate && endDate) {
+        queryBuilder.andWhere(
+          'tutorial.createdAt BETWEEN :startDate AND :endDate',
+          {
+            startDate,
+            endDate,
+          },
+        );
+      }
+    }
+
+    return queryBuilder.getMany();
   }
 
   async findOne(id: number): Promise<Tutorial> {
@@ -33,9 +60,12 @@ export class TutorialService {
     id: number,
     updateTutorialDto: UpdateTutorialDto,
   ): Promise<Tutorial> {
-    await this.findOne(id); // Verifica se o tutorial existe antes de atualizar
-    await this.tutorialRepository.update(id, updateTutorialDto);
-    return this.findOne(id);
+    const tutorial = await this.findOne(id);
+    if (!tutorial) {
+      throw new NotFoundException(`Tutorial with ID ${id} not found`);
+    }
+    const updatedTutorial = { ...tutorial, ...updateTutorialDto };
+    return this.tutorialRepository.save(updatedTutorial);
   }
 
   async remove(id: number): Promise<void> {
@@ -43,17 +73,5 @@ export class TutorialService {
     if (result.affected === 0) {
       throw new NotFoundException(`Tutorial with ID ${id} not found`);
     }
-  }
-
-  async findByTitle(title: string): Promise<Tutorial[]> {
-    return this.tutorialRepository.find({ where: { title } });
-  }
-
-  async findByDateRange(startDate: Date, endDate: Date): Promise<Tutorial[]> {
-    return this.tutorialRepository
-      .createQueryBuilder('tutorial')
-      .where('tutorial.createdAt >= :startDate', { startDate })
-      .andWhere('tutorial.createdAt <= :endDate', { endDate })
-      .getMany();
   }
 }
