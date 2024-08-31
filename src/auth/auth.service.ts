@@ -22,16 +22,20 @@ export class AuthService {
   async login(user: User): Promise<{ access_token: string }> {
     const payload: JwtPayload = { username: user.name, sub: user.id };
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.generateToken(payload),
     };
+  }
+
+  generateToken(payload: JwtPayload): string {
+    return this.jwtService.sign(payload);
   }
 
   async validateToken(token: string): Promise<User | null> {
     try {
       const decoded = this.jwtService.verify<JwtPayload>(token);
       return await this.userService.findOne(decoded.sub);
-    } catch (error) {
-      return error;
+    } catch {
+      return null;
     }
   }
 }
