@@ -3,11 +3,15 @@ import { TutorialService } from '../tutorial.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Tutorial } from '../tutorial.entity';
 import { Repository } from 'typeorm';
+import { Cache } from 'cache-manager';
 import { NotFoundException, ConflictException } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 describe('TutorialService', () => {
   let service: TutorialService;
   let repository: Repository<Tutorial>;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let cacheManager: Cache;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,11 +34,20 @@ describe('TutorialService', () => {
             }),
           },
         },
+        {
+          provide: CACHE_MANAGER,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     service = module.get<TutorialService>(TutorialService);
     repository = module.get<Repository<Tutorial>>(getRepositoryToken(Tutorial));
+    cacheManager = module.get<Cache>(CACHE_MANAGER);
   });
 
   describe('create', () => {
@@ -49,7 +62,7 @@ describe('TutorialService', () => {
         ...createTutorialDto,
       } as Tutorial;
 
-      jest.spyOn(service, 'findByTitle').mockResolvedValueOnce(null); // No conflict
+      jest.spyOn(service, 'findByTitle').mockResolvedValueOnce(null);
       jest.spyOn(repository, 'save').mockResolvedValueOnce(tutorial);
 
       const result = await service.create(createTutorialDto);

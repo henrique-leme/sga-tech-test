@@ -7,11 +7,16 @@ import { UserModule } from './user/user.module';
 import { TutorialModule } from './tutorial/tutorial.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    CacheModule.register({
+      ttl: 5,
+      max: 100,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

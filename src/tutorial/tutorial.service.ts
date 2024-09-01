@@ -2,18 +2,22 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tutorial } from './tutorial.entity';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class TutorialService {
   constructor(
     @InjectRepository(Tutorial)
     private readonly tutorialRepository: Repository<Tutorial>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async create(createTutorialDto: CreateTutorialDto): Promise<Tutorial> {
@@ -23,7 +27,9 @@ export class TutorialService {
     }
 
     const tutorial = this.tutorialRepository.create(createTutorialDto);
-    return this.tutorialRepository.save(tutorial);
+    const savedTutorial = await this.tutorialRepository.save(tutorial);
+    await this.cacheManager.del('TutorialService_findAll');
+    return savedTutorial;
   }
 
   async findAll({
@@ -92,7 +98,9 @@ export class TutorialService {
     }
 
     const updatedTutorial = { ...tutorial, ...updateTutorialDto };
-    return this.tutorialRepository.save(updatedTutorial);
+    const savedTutorial = await this.tutorialRepository.save(updatedTutorial);
+    await this.cacheManager.del('TutorialService_findAll');
+    return savedTutorial;
   }
 
   async remove(id: number): Promise<void> {
@@ -101,5 +109,6 @@ export class TutorialService {
       throw new NotFoundException(`Tutorial with ID ${id} not found`);
     }
     await this.tutorialRepository.remove(tutorial);
+    await this.cacheManager.del('TutorialService_findAll');
   }
 }

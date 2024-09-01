@@ -22,7 +22,7 @@ describe('TutorialResolver', () => {
             findOne: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
-            findByTitle: jest.fn(), // Adicionado mock para findByTitle
+            findByTitle: jest.fn(),
           },
         },
       ],

@@ -39,7 +39,6 @@ export class UserResolver {
     @Args('createUserData', { type: () => CreateUserDto })
     createUserData: CreateUserDto,
   ): Promise<User> {
-    // Verifica se o usuário já existe com o email fornecido
     const existingUser = await this.userService.findByEmail(
       createUserData.email,
     );
