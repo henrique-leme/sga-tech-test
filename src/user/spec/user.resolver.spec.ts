@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserResolver } from '../user.resolver';
 import { UserService } from '../user.service';
 import { AuthService } from '../../auth/auth.service';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { User } from '../user.entity';
 
@@ -24,6 +24,7 @@ describe('UserResolver', () => {
             update: jest.fn(),
             remove: jest.fn(),
             validateUser: jest.fn(),
+            findByEmail: jest.fn(),
           },
         },
         {
@@ -48,11 +49,33 @@ describe('UserResolver', () => {
         password: '123456',
       };
       const user = { id: 1, ...createUserDto } as User;
+
+      jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(null);
       jest.spyOn(userService, 'create').mockResolvedValueOnce(user);
 
       const result = await resolver.createUser(createUserDto);
       expect(result).toEqual(user);
       expect(userService.create).toHaveBeenCalledWith(createUserDto);
+      expect(userService.findByEmail).toHaveBeenCalledWith(createUserDto.email);
+    });
+
+    it('should throw ConflictException if email is already taken', async () => {
+      const createUserDto: CreateUserDto = {
+        name: 'Henrique',
+        email: 'henriqueleme@example.com',
+        password: '123456',
+      };
+      const existingUser = { id: 2, ...createUserDto } as User;
+
+      jest
+        .spyOn(userService, 'findByEmail')
+        .mockResolvedValueOnce(existingUser);
+
+      await expect(resolver.createUser(createUserDto)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(userService.findByEmail).toHaveBeenCalledWith(createUserDto.email);
+      expect(userService.create).not.toHaveBeenCalled();
     });
   });
 
@@ -126,10 +149,28 @@ describe('UserResolver', () => {
       } as User;
       const updatedUser = { ...user, ...updateUserDto };
 
+      jest.spyOn(userService, 'findByEmail').mockResolvedValueOnce(null);
       jest.spyOn(userService, 'update').mockResolvedValueOnce(updatedUser);
 
       const result = await resolver.updateUser(1, updateUserDto);
       expect(result).toEqual(updatedUser);
+      expect(userService.update).toHaveBeenCalledWith(1, updateUserDto);
+      expect(userService.findByEmail).toHaveBeenCalledWith(updateUserDto.email);
+    });
+
+    it('should throw ConflictException if email is already taken by another user', async () => {
+      const updateUserDto = { name: 'Updated', email: 'updated@example.com' };
+      const existingUser = { id: 2, ...updateUserDto } as User;
+
+      jest
+        .spyOn(userService, 'findByEmail')
+        .mockResolvedValueOnce(existingUser);
+
+      await expect(resolver.updateUser(1, updateUserDto)).rejects.toThrow(
+        ConflictException,
+      );
+      expect(userService.findByEmail).toHaveBeenCalledWith(updateUserDto.email);
+      expect(userService.update).not.toHaveBeenCalled();
     });
   });
 

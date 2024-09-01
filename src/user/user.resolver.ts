@@ -5,7 +5,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { AuthService } from '../auth/auth.service';
-import { NotFoundException, UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Resolver(() => User)
@@ -35,6 +39,13 @@ export class UserResolver {
     @Args('createUserData', { type: () => CreateUserDto })
     createUserData: CreateUserDto,
   ): Promise<User> {
+    // Verifica se o usuário já existe com o email fornecido
+    const existingUser = await this.userService.findByEmail(
+      createUserData.email,
+    );
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
     return this.userService.create(createUserData);
   }
 
@@ -46,6 +57,14 @@ export class UserResolver {
     @Args('updateUserData', { type: () => UpdateUserDto })
     updateUserData: UpdateUserDto,
   ): Promise<User> {
+    if (updateUserData.email) {
+      const existingUser = await this.userService.findByEmail(
+        updateUserData.email,
+      );
+      if (existingUser && existingUser.id !== id) {
+        throw new ConflictException('User with this email already exists');
+      }
+    }
     return this.userService.update(id, updateUserData);
   }
 
@@ -73,5 +92,17 @@ export class UserResolver {
     }
     const { access_token } = await this.authService.login(user);
     return access_token;
+  }
+
+  @Mutation(() => User)
+  async signUp(
+    @Args('signUpData', { type: () => CreateUserDto })
+    signUpData: CreateUserDto,
+  ): Promise<User> {
+    const existingUser = await this.userService.findByEmail(signUpData.email);
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+    return this.userService.create(signUpData);
   }
 }

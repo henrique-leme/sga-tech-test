@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tutorial } from './tutorial.entity';
@@ -13,6 +17,11 @@ export class TutorialService {
   ) {}
 
   async create(createTutorialDto: CreateTutorialDto): Promise<Tutorial> {
+    const existingTutorial = await this.findByTitle(createTutorialDto.title);
+    if (existingTutorial) {
+      throw new ConflictException('Tutorial with this title already exists');
+    }
+
     const tutorial = this.tutorialRepository.create(createTutorialDto);
     return this.tutorialRepository.save(tutorial);
   }
@@ -20,9 +29,13 @@ export class TutorialService {
   async findAll({
     title,
     date,
+    page = 1,
+    limit = 10,
   }: {
     title?: string;
     date?: string;
+    page?: number;
+    limit?: number;
   }): Promise<Tutorial[]> {
     const queryBuilder = this.tutorialRepository.createQueryBuilder('tutorial');
 
@@ -45,6 +58,8 @@ export class TutorialService {
       }
     }
 
+    queryBuilder.skip((page - 1) * limit).take(limit);
+
     return queryBuilder.getMany();
   }
 
@@ -56,6 +71,10 @@ export class TutorialService {
     return tutorial;
   }
 
+  async findByTitle(title: string): Promise<Tutorial | null> {
+    return this.tutorialRepository.findOne({ where: { title } });
+  }
+
   async update(
     id: number,
     updateTutorialDto: UpdateTutorialDto,
@@ -64,14 +83,23 @@ export class TutorialService {
     if (!tutorial) {
       throw new NotFoundException(`Tutorial with ID ${id} not found`);
     }
+
+    const conflictingTutorial = await this.findByTitle(updateTutorialDto.title);
+    if (conflictingTutorial && conflictingTutorial.id !== id) {
+      throw new ConflictException(
+        'Another tutorial with this title already exists',
+      );
+    }
+
     const updatedTutorial = { ...tutorial, ...updateTutorialDto };
     return this.tutorialRepository.save(updatedTutorial);
   }
 
   async remove(id: number): Promise<void> {
-    const result = await this.tutorialRepository.delete(id);
-    if (result.affected === 0) {
+    const tutorial = await this.findOne(id);
+    if (!tutorial) {
       throw new NotFoundException(`Tutorial with ID ${id} not found`);
     }
+    await this.tutorialRepository.remove(tutorial);
   }
 }

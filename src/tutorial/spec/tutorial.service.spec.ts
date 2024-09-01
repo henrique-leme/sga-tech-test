@@ -3,7 +3,7 @@ import { TutorialService } from '../tutorial.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Tutorial } from '../tutorial.entity';
 import { Repository } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ConflictException } from '@nestjs/common';
 
 describe('TutorialService', () => {
   let service: TutorialService;
@@ -20,8 +20,14 @@ describe('TutorialService', () => {
             save: jest.fn(),
             findOne: jest.fn(),
             find: jest.fn(),
-            delete: jest.fn(),
-            createQueryBuilder: jest.fn(),
+            remove: jest.fn(),
+            createQueryBuilder: jest.fn().mockReturnValue({
+              where: jest.fn().mockReturnThis(),
+              andWhere: jest.fn().mockReturnThis(),
+              getMany: jest.fn().mockResolvedValue([]),
+              skip: jest.fn().mockReturnThis(),
+              take: jest.fn().mockReturnThis(),
+            }),
           },
         },
       ],
@@ -43,12 +49,33 @@ describe('TutorialService', () => {
         ...createTutorialDto,
       } as Tutorial;
 
+      jest.spyOn(service, 'findByTitle').mockResolvedValueOnce(null); // No conflict
       jest.spyOn(repository, 'save').mockResolvedValueOnce(tutorial);
 
       const result = await service.create(createTutorialDto);
       expect(result).toEqual(tutorial);
       expect(repository.save).toHaveBeenCalledWith(
         expect.objectContaining(createTutorialDto),
+      );
+    });
+
+    it('should throw ConflictException if a tutorial with the same title exists', async () => {
+      const createTutorialDto = {
+        title: 'Existing Tutorial',
+        content: 'Content of the tutorial',
+      };
+
+      const existingTutorial = {
+        id: 1,
+        ...createTutorialDto,
+      } as Tutorial;
+
+      jest
+        .spyOn(service, 'findByTitle')
+        .mockResolvedValueOnce(existingTutorial);
+
+      await expect(service.create(createTutorialDto)).rejects.toThrow(
+        ConflictException,
       );
     });
   });
@@ -72,6 +99,8 @@ describe('TutorialService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValueOnce(tutorialArray),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
       };
 
       jest
@@ -116,6 +145,7 @@ describe('TutorialService', () => {
       const updatedTutorial = { ...tutorial, ...updateTutorialDto };
 
       jest.spyOn(service, 'findOne').mockResolvedValueOnce(tutorial);
+      jest.spyOn(service, 'findByTitle').mockResolvedValueOnce(null);
       jest.spyOn(repository, 'save').mockResolvedValueOnce(updatedTutorial);
 
       const result = await service.update(1, updateTutorialDto);
@@ -129,6 +159,30 @@ describe('TutorialService', () => {
         service.update(1, { title: 'Updated Title' }),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('should throw ConflictException if another tutorial with the same title exists', async () => {
+      const updateTutorialDto = { title: 'Updated Title' };
+      const tutorial = {
+        id: 1,
+        title: 'Original Title',
+        content: 'Original Content',
+      } as Tutorial;
+
+      const conflictingTutorial = {
+        id: 2,
+        title: 'Updated Title',
+        content: 'Another Content',
+      } as Tutorial;
+
+      jest.spyOn(service, 'findOne').mockResolvedValueOnce(tutorial);
+      jest
+        .spyOn(service, 'findByTitle')
+        .mockResolvedValueOnce(conflictingTutorial);
+
+      await expect(service.update(1, updateTutorialDto)).rejects.toThrow(
+        ConflictException,
+      );
+    });
   });
 
   describe('remove', () => {
@@ -139,23 +193,15 @@ describe('TutorialService', () => {
         content: 'Content of the tutorial',
       } as Tutorial;
 
-      const deleteResult = { affected: 1 };
-
-      jest
-        .spyOn(repository, 'delete')
-        .mockResolvedValueOnce(deleteResult as any);
       jest.spyOn(repository, 'findOne').mockResolvedValueOnce(tutorial);
+      jest.spyOn(repository, 'remove').mockResolvedValueOnce(tutorial);
 
       await service.remove(1);
-      expect(repository.delete).toHaveBeenCalledWith(1);
+      expect(repository.remove).toHaveBeenCalledWith(tutorial);
     });
 
     it('should throw NotFoundException if tutorial is not found', async () => {
-      const deleteResult = { affected: 0 };
-
-      jest
-        .spyOn(repository, 'delete')
-        .mockResolvedValueOnce(deleteResult as any);
+      jest.spyOn(repository, 'findOne').mockResolvedValueOnce(null);
 
       await expect(service.remove(1)).rejects.toThrow(NotFoundException);
     });

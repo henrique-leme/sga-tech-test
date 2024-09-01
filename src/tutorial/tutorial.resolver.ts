@@ -3,7 +3,11 @@ import { Tutorial } from './tutorial.entity';
 import { TutorialService } from './tutorial.service';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
-import { UseGuards } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 
 @Resolver(() => Tutorial)
@@ -28,8 +32,20 @@ export class TutorialResolver {
         'Filtro opcional pela data de criação ou atualização. Formato: "YYYY-MM-DD,YYYY-MM-DD"',
     })
     date?: string,
+    @Args('page', {
+      type: () => Int,
+      nullable: true,
+      description: 'Número da página para paginação',
+    })
+    page: number = 1,
+    @Args('limit', {
+      type: () => Int,
+      nullable: true,
+      description: 'Limite de tutoriais por página',
+    })
+    limit: number = 10,
   ): Promise<Tutorial[]> {
-    return this.tutorialService.findAll({ title, date });
+    return this.tutorialService.findAll({ title, date, page, limit });
   }
 
   @Query(() => Tutorial, {
@@ -39,7 +55,11 @@ export class TutorialResolver {
     @Args('id', { type: () => Int, description: 'ID único do tutorial' })
     id: number,
   ): Promise<Tutorial> {
-    return this.tutorialService.findOne(id);
+    const tutorial = await this.tutorialService.findOne(id);
+    if (!tutorial) {
+      throw new NotFoundException('Tutorial not found');
+    }
+    return tutorial;
   }
 
   @Mutation(() => Tutorial, {
@@ -52,6 +72,12 @@ export class TutorialResolver {
     })
     createTutorialDto: CreateTutorialDto,
   ): Promise<Tutorial> {
+    const existingTutorial = await this.tutorialService.findByTitle(
+      createTutorialDto.title,
+    );
+    if (existingTutorial) {
+      throw new ConflictException('Tutorial with this title already exists');
+    }
     return this.tutorialService.create(createTutorialDto);
   }
 
@@ -67,6 +93,18 @@ export class TutorialResolver {
     })
     updateTutorialDto: UpdateTutorialDto,
   ): Promise<Tutorial> {
+    const existingTutorial = await this.tutorialService.findOne(id);
+    if (!existingTutorial) {
+      throw new NotFoundException('Tutorial not found');
+    }
+    const conflictingTutorial = await this.tutorialService.findByTitle(
+      updateTutorialDto.title,
+    );
+    if (conflictingTutorial && conflictingTutorial.id !== id) {
+      throw new ConflictException(
+        'Another tutorial with this title already exists',
+      );
+    }
     return this.tutorialService.update(id, updateTutorialDto);
   }
 
@@ -78,6 +116,10 @@ export class TutorialResolver {
     @Args('id', { type: () => Int, description: 'ID único do tutorial' })
     id: number,
   ): Promise<boolean> {
+    const existingTutorial = await this.tutorialService.findOne(id);
+    if (!existingTutorial) {
+      throw new NotFoundException('Tutorial not found');
+    }
     await this.tutorialService.remove(id);
     return true;
   }

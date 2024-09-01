@@ -22,6 +22,7 @@ describe('TutorialResolver', () => {
             findOne: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
+            findByTitle: jest.fn(), // Adicionado mock para findByTitle
           },
         },
       ],
@@ -40,11 +41,13 @@ describe('TutorialResolver', () => {
 
       const tutorial = { id: 1, ...createTutorialDto } as Tutorial;
 
+      jest.spyOn(service, 'findByTitle').mockResolvedValueOnce(null);
       jest.spyOn(service, 'create').mockResolvedValueOnce(tutorial);
 
       const result = await resolver.createTutorial(createTutorialDto);
       expect(result).toEqual(tutorial);
       expect(service.create).toHaveBeenCalledWith(createTutorialDto);
+      expect(service.findByTitle).toHaveBeenCalledWith(createTutorialDto.title);
     });
   });
 
@@ -104,25 +107,44 @@ describe('TutorialResolver', () => {
 
       const updatedTutorial = { ...tutorial, ...updateTutorialDto };
 
+      jest.spyOn(service, 'findOne').mockResolvedValueOnce(tutorial);
+      jest.spyOn(service, 'findByTitle').mockResolvedValueOnce(null);
       jest.spyOn(service, 'update').mockResolvedValueOnce(updatedTutorial);
 
       const result = await resolver.updateTutorial(1, updateTutorialDto);
       expect(result).toEqual(updatedTutorial);
+      expect(service.update).toHaveBeenCalledWith(1, updateTutorialDto);
+      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(service.findByTitle).toHaveBeenCalledWith(updateTutorialDto.title);
+    });
+
+    it('should throw NotFoundException if tutorial is not found', async () => {
+      jest.spyOn(service, 'findOne').mockResolvedValueOnce(null);
+
+      await expect(
+        resolver.updateTutorial(1, { title: 'Updated Title' }),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('deleteTutorial', () => {
     it('should remove the tutorial and return true', async () => {
+      const tutorial = {
+        id: 1,
+        title: 'Tutorial to be removed',
+        content: 'Content of the tutorial',
+      } as Tutorial;
+
+      jest.spyOn(service, 'findOne').mockResolvedValueOnce(tutorial);
       jest.spyOn(service, 'remove').mockResolvedValueOnce();
 
       const result = await resolver.deleteTutorial(1);
       expect(result).toBe(true);
+      expect(service.remove).toHaveBeenCalledWith(1);
     });
 
     it('should throw NotFoundException if tutorial is not found', async () => {
-      jest
-        .spyOn(service, 'remove')
-        .mockRejectedValueOnce(new NotFoundException());
+      jest.spyOn(service, 'findOne').mockResolvedValueOnce(null);
 
       await expect(resolver.deleteTutorial(1)).rejects.toThrow(
         NotFoundException,
