@@ -1,85 +1,138 @@
+Aqui está o README detalhado com base no template fornecido:
+
+# SGA Tech Test
+
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <img src="https://img.shields.io/static/v1?label=Node.js&message=runtime&color=green&style=for-the-badge&logo=node.js"/>
+  <img src="https://img.shields.io/static/v1?label=TypeScript&message=language&color=blue&style=for-the-badge&logo=typescript"/>
+  <img src="https://img.shields.io/static/v1?label=NestJS&message=framework&color=red&style=for-the-badge&logo=nestjs"/>
+  <img src="https://img.shields.io/static/v1?label=GraphQL&message=query%20language&color=orange&style=for-the-badge&logo=graphql"/>
+  <img src="https://img.shields.io/static/v1?label=SQLite&message=database&color=yellow&style=for-the-badge&logo=sqlite"/>
+  <img src="https://img.shields.io/static/v1?label=Jest&message=test%20framework&color=brightgreen&style=for-the-badge&logo=jest"/>
+  <img src="https://img.shields.io/static/v1?label=Docker&message=containerization&color=blue&style=for-the-badge&logo=docker"/>
 </p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## Project Status: ⚠️ In Development
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### Description
 
-## Description
+SGA Tech Test is a backend service built as a technical test for the SGA company. It is designed using modern web technologies such as Node.js, NestJS, TypeScript, and GraphQL. The project includes features like user authentication, tutorial management, and data persistence using SQLite. Additionally, the project includes Docker support for containerized deployment and caching for optimized performance.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### ⚙️ Features
 
-## Project setup
+- **Backend:**
+  - User Signup and Authentication
+  - Tutorial Management with CRUD operations
+  - Pagination and Filtering for tutorials
+  - Caching for optimized data retrieval
+  - Secure and efficient data handling using SQLite
+  - Comprehensive unit testing with Jest
+  - Dockerized setup for consistent development and deployment environments
 
-```bash
-$ pnpm install
+### 📚 Documentation
+
+For detailed documentation, refer to the [Documentation](#) (link will be added).
+
+To access the documentation locally:
+
+1. Clone the project.
+2. Follow the setup instructions below.
+
+### 📝 Table of Contents
+
+- [Getting Started](#getting-started)
+- [How to Run](#how-to-run)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Built With](#built-with)
+- [Authors](#authors)
+
+## 🚀 Getting Started
+
+Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
+
+### 📋 Prerequisites
+
+Ensure you have the following installed:
+
+- Git
+- Node.js (version 20 or later)
+- pnpm (Package Manager)
+- Docker (for containerization)
+
+### 🔧 Installation
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/henrique-leme/sga-tech-test.git
+   ```
+
+2. Navigate to the project directory:
+
+   ```sh
+   cd sga-tech-test/
+   ```
+
+3. Copy the environment configuration file:
+
+   ```sh
+   cp .env.example .env
+
+   # Note: This command will not work on Windows OS. For Windows, you must manually copy and paste the .env.example and rename it to .env
+   ```
+
+4. Install dependencies:
+
+   ```sh
+   pnpm install
+   ```
+
+## ⚙️ How to Run
+
+1. Start the development server using Docker:
+
+   ```sh
+   pnpm compose:up
+   ```
+
+   This command will build the Docker containers and start the application.
+
+2. If you want to run the application locally without Docker:
+
+   ```sh
+   pnpm start:dev
+   ```
+
+   This command will start the NestJS application in development mode.
+
+### 🧪 Testing
+
+To run the tests, use the following command:
+
+```sh
+pnpm run test
 ```
 
-## Compile and run the project
+This will execute all unit tests using Jest.
 
-```bash
-# development
-$ pnpm run start
+### 📦 Deployment
 
-# watch mode
-$ pnpm run start:dev
+Deployment steps will be provided in future updates.
 
-# production mode
-$ pnpm run start:prod
-```
+### 🛠️ Built With
 
-## Run tests
+- **Server:**
+  - [Node.js](https://nodejs.org/) - The runtime environment
+  - [NestJS](https://nestjs.com/) - The web framework
+  - [TypeScript](https://www.typescriptlang.org/) - The programming language
+  - [GraphQL](https://graphql.org/) - The query language
+  - [SQLite](https://www.sqlite.org/index.html) - The database
+  - [Jest](https://jestjs.io/) - The testing framework
+  - [Docker](https://www.docker.com/) - Containerization
 
-```bash
-# unit tests
-$ pnpm run test
+## ✒️ Authors
 
-# e2e tests
-$ pnpm run test:e2e
+- **Henrique Leme** - _Developer_ - [GitHub](https://github.com/henrique-leme)
 
-# test coverage
-$ pnpm run test:cov
-```
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+See also the list of [contributors](https://github.com/henrique-leme/sga-tech-test/contributors) who participated in this project.
